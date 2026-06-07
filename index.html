@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Материалы к Уроку Claude Opus 4.8 - Dynamic Workflows | Мастодонт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'Druk';src:url('./fonts/DrukWideCyr.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'Blender';src:url('./fonts/BlenderPro-Thin.ttf') format('truetype');font-weight:200;font-display:swap}
+@font-face{font-family:'Blender';src:url('./fonts/BlenderPro-Book.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Blender';src:url('./fonts/BlenderPro-Medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Blender';src:url('./fonts/BlenderPro-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'Onest';src:url('./fonts/Onest-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Onest';src:url('./fonts/Onest-Medium.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:'Onest';src:url('./fonts/Onest-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+
+:root{
+  --bg:#0A0908; --panel:#100E0B; --panel2:#16130D; --ink:#08070500;
+  --bone:#ECE8DF; --muted:#867F71; --line:rgba(236,232,223,.10); --line2:rgba(236,232,223,.18);
+  --gold:#F2DB82; --amber:#FF9D2E; --cyan:#57E0D8; --red:#FF4D3D;
+  --grad:linear-gradient(100deg,var(--gold),var(--amber));
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--bone);font-family:'Onest',sans-serif;line-height:1.55;overflow-x:hidden;position:relative}
+.mono{font-family:'JetBrains Mono',monospace}
+.druk{font-family:'Druk',sans-serif;font-weight:700;text-transform:uppercase;line-height:.9;letter-spacing:.004em}
+.blend{font-family:'Blender',sans-serif}
+
+/* atmosphere */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+   linear-gradient(rgba(236,232,223,.022) 1px,transparent 1px) 0 0/100% 46px,
+   linear-gradient(90deg,rgba(236,232,223,.022) 1px,transparent 1px) 0 0/46px 100%,
+   radial-gradient(640px 440px at 8% -6%,rgba(242,219,130,.10),transparent 62%),
+   radial-gradient(720px 520px at 98% 4%,rgba(255,157,46,.08),transparent 60%)}
+body::after{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.scan{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(0,0,0,.16) 3px 4px);animation:scan 9s linear infinite}
+@keyframes scan{to{background-position-y:140px}}
+
+/* corner markers */
+.cm{position:fixed;z-index:120;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;color:rgba(236,232,223,.42);pointer-events:none;text-transform:uppercase}
+.cm.tl{top:13px;left:15px}.cm.tr{top:13px;right:15px;text-align:right}.cm.bl{bottom:13px;left:15px}.cm.br{bottom:13px;right:15px;text-align:right}
+.rec{display:inline-block;width:7px;height:7px;background:var(--red);margin-right:6px;vertical-align:middle;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:.2}}
+@media(max-width:760px){.cm.bl,.cm.br{display:none}}
+
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 26px}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(242,219,130,.28);color:#0A0908}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:#0A0908}
+::-webkit-scrollbar-thumb{background:var(--grad)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* nav */
+nav{position:sticky;top:0;z-index:110;background:rgba(10,9,8,.8);backdrop-filter:blur(12px);border-bottom:1px solid transparent;
+  border-image:linear-gradient(90deg,transparent,var(--gold),var(--amber),transparent) 1}
+.nav-in{max-width:1120px;margin:0 auto;padding:14px 26px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.nb{font-family:'Druk',sans-serif;font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.02em}
+.nb span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nl{display:flex;gap:7px;flex-wrap:wrap}
+.nl a{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 13px;border:1px solid var(--line);transition:.2s}
+.nl a:hover{color:var(--gold);border-color:var(--line2)}
+
+/* hero */
+.hero{padding:72px 0 50px;border-bottom:1px solid var(--line);position:relative}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:11px}
+.kicker::before{content:"";width:40px;height:1px;background:var(--gold)}
+.h1{font-size:clamp(46px,11vw,138px)}
+.h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h1-sub{font-family:'Blender',sans-serif;font-weight:500;font-size:clamp(18px,3vw,34px);margin-top:16px;color:var(--bone)}
+.lead{font-family:'Onest';color:var(--muted);font-size:clamp(15px,1.9vw,18px);max-width:660px;margin:24px 0 30px}
+.yt{display:inline-flex;align-items:center;gap:11px;font-family:'Blender';font-weight:700;font-size:16px;letter-spacing:.02em;text-transform:uppercase;color:#0A0908;background:var(--grad);padding:14px 26px;transition:.2s;box-shadow:0 12px 36px rgba(255,157,46,.26)}
+.yt:hover{transform:translateY(-2px);box-shadow:0 18px 48px rgba(255,157,46,.4)}
+.yt svg{width:21px;height:21px}
+.yt-note{display:block;margin-top:12px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
+.hmeta{margin-top:34px;display:flex;gap:24px;flex-wrap:wrap;font-family:'JetBrains Mono';font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.hmeta b{color:var(--gold);font-weight:500}
+
+/* section head */
+.sec{padding:50px 0;border-bottom:1px solid var(--line)}
+.sh{display:flex;align-items:flex-end;gap:16px;margin-bottom:30px}
+.sh .ix{font-family:'JetBrains Mono';font-size:13px;color:var(--amber);letter-spacing:.1em;padding-bottom:6px}
+.sh h2{font-size:clamp(24px,4.4vw,46px)}
+.sh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent);margin-bottom:10px}
+
+/* learn */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:0;border:1px solid var(--line)}
+.lc{padding:26px 24px;border-right:1px solid var(--line);position:relative;background:var(--panel)}
+.lc:last-child{border-right:none}
+.lc::before{content:"";position:absolute;top:0;left:0;width:48px;height:3px;background:var(--grad)}
+.lc .ix{font-family:'Druk';font-weight:700;font-size:34px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;display:block;margin-bottom:14px}
+.lc p{font-family:'Onest';font-weight:500;font-size:15.5px}
+@media(max-width:780px){.lc{border-right:none;border-bottom:1px solid var(--line)}.lc:last-child{border-bottom:none}}
+
+/* tools */
+.tool{display:flex;align-items:center;gap:18px;border:1px solid var(--line);border-top:none;padding:18px 22px;background:var(--panel);transition:.2s}
+.tools{border-top:1px solid var(--line)}
+.tool:hover{background:var(--panel2)}
+.tool .ti{width:46px;height:46px;flex:none;display:grid;place-items:center;font-size:22px;border:1px solid var(--line2);background:#0A0908}
+.tool .tn{font-family:'Blender';font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.02em}
+.tool .tu{font-family:'JetBrains Mono';font-size:12px;color:var(--muted)}
+.pill{font-family:'JetBrains Mono';font-size:11px;font-weight:700;padding:4px 10px;white-space:nowrap;border:1px solid}
+.free{color:var(--cyan);border-color:rgba(87,224,216,.35);background:rgba(87,224,216,.07)}
+.paid{color:var(--gold);border-color:rgba(242,219,130,.35);background:rgba(242,219,130,.07)}
+.tool .sp{margin-left:auto}
+
+/* steps */
+.step{position:relative;border:1px solid var(--line);background:var(--panel);padding:30px 28px 30px;margin-bottom:18px;overflow:hidden}
+.step::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+.step::after{content:"";position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(242,219,130,.08),transparent 70%);pointer-events:none}
+.s-head{display:flex;align-items:flex-start;gap:22px;margin-bottom:8px}
+.s-n{font-family:'Druk';font-weight:700;font-size:clamp(48px,8vw,92px);line-height:.78;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;flex:none}
+.s-tt{padding-top:6px}
+.s-lab{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;display:block;margin-bottom:8px}
+.s-t{font-family:'Blender';font-weight:700;font-size:clamp(19px,2.7vw,27px);text-transform:uppercase;letter-spacing:.01em;line-height:1.04}
+.s-d{font-family:'Onest';color:var(--muted);font-size:15px;margin:14px 0 16px;max-width:780px}
+code,.inl{font-family:'JetBrains Mono';font-size:13px;background:#0A0908;border:1px solid var(--line2);padding:2px 8px;color:var(--gold)}
+.act{list-style:none}
+.act li{position:relative;padding:7px 0 7px 26px;font-family:'Onest';font-size:15.5px}
+.act li::before{content:"▸";position:absolute;left:2px;color:var(--gold);font-weight:700}
+.hint{margin-top:15px;border-left:3px solid;border-image:var(--grad) 1;background:rgba(242,219,130,.05);padding:13px 17px;font-family:'Onest';font-size:14px;color:#e7dcc4}
+.hint b{color:var(--gold)}
+
+/* terminal prompt */
+.term{margin:16px 0 6px;border:1px solid var(--line2);background:#070605;box-shadow:0 10px 36px rgba(0,0,0,.45)}
+.term-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 15px;background:#0E0C09;border-bottom:1px solid var(--line)}
+.term-l{font-family:'JetBrains Mono';font-size:12px;color:var(--gold);letter-spacing:.05em}
+.term-l b{color:var(--muted);font-weight:400}
+.copy{font-family:'Blender';font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:#0A0908;background:var(--grad);border:none;padding:8px 15px;cursor:pointer;transition:.15s;white-space:nowrap}
+.copy:hover{filter:brightness(1.08)}
+.copy.done{background:var(--cyan)}
+.ptext{padding:16px;font-family:'JetBrains Mono';font-size:13.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;color:#ECE3D2}
+.ptext::selection{background:rgba(242,219,130,.3)}
+
+/* links */
+.lk{display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-top:none;padding:16px 20px;background:var(--panel);transition:.2s}
+.links{border-top:1px solid var(--line)}
+.lk:hover{background:var(--panel2)}
+.lk .li{font-size:21px}
+.lk .ln{font-family:'Blender';font-weight:700;font-size:15.5px;text-transform:uppercase;letter-spacing:.02em}
+.lk .lu{font-family:'JetBrains Mono';font-size:12px;color:var(--muted)}
+
+/* CTA */
+.cta{position:relative;margin:56px 0 44px;border:1px solid var(--line2);background:var(--panel);padding:40px clamp(24px,4vw,48px);overflow:hidden;animation:cglow 3s ease-in-out infinite alternate}
+@keyframes cglow{from{box-shadow:0 0 0 rgba(255,157,46,0)}to{box-shadow:0 0 56px rgba(255,157,46,.14)}}
+.cta::before{content:"";position:absolute;top:-90px;left:-70px;width:260px;height:260px;background:radial-gradient(circle,rgba(242,219,130,.13),transparent 70%);pointer-events:none}
+.cta::after{content:"";position:absolute;bottom:-90px;right:-70px;width:260px;height:260px;background:radial-gradient(circle,rgba(255,157,46,.13),transparent 70%);pointer-events:none}
+.cta-k{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;margin-bottom:14px;position:relative}
+.cta-t{font-family:'Druk';font-weight:700;text-transform:uppercase;font-size:clamp(22px,3.8vw,40px);line-height:1.02;margin-bottom:28px;position:relative}
+.cta-t .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cta-cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;position:relative}
+.cta-cols h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.cta-cols li{list-style:none;font-family:'Onest';font-size:14.5px;font-weight:500;padding:6px 0;display:flex;gap:9px}
+.cta-bottom{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:30px;position:relative}
+.cta-free{font-family:'Druk';font-weight:700;font-size:clamp(16px,2.4vw,22px);text-transform:uppercase}
+.cta-free .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cta-btn{font-family:'Blender';font-weight:700;font-size:16px;letter-spacing:.03em;text-transform:uppercase;color:#0A0908;background:var(--grad);padding:15px 32px;transition:.2s;box-shadow:0 12px 34px rgba(255,157,46,.3)}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 18px 46px rgba(255,157,46,.44)}
+@media(max-width:680px){.cta-cols{grid-template-columns:1fr;gap:20px}}
+
+/* footer */
+footer{padding:38px 0 70px;text-align:center}
+.fb{font-family:'Druk';font-weight:700;font-size:24px;text-transform:uppercase;margin-bottom:8px}
+.fb span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+footer p{font-family:'JetBrains Mono';color:var(--muted);font-size:12.5px;letter-spacing:.06em}
+.fy{display:inline-block;margin-top:14px;font-family:'JetBrains Mono';font-size:12px;color:var(--gold);cursor:pointer;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<div class="scan"></div>
+<div class="cm tl"><span class="rec"></span>REC // MASTODONT</div>
+<div class="cm tr">OPUS 4.8 // DYN.WORKFLOWS</div>
+<div class="cm bl">LAT 55.75 · LON 37.61</div>
+<div class="cm br">DOC // 2026</div>
+
+<nav><div class="nav-in">
+  <div class="nb"><span>МАСТОДОНТ</span></div>
+  <div class="nl"><a href="#tools">// Оборудование</a><a href="#steps">// Протокол</a><a href="#links">// Связь</a></div>
+</div></nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="kicker rv in">Материалы к уроку — модуль 00</div>
+    <h1 class="druk h1 rv in"><span class="g">Армия</span> агентов</h1>
+    <div class="h1-sub blend rv in">Claude Opus 4.8 · 100 ИИ-агентов одной командой</div>
+    <p class="lead rv in">Запускаешь сотню агентов одной командой: они находят прибыльные ниши, строят стартапы с сайтами и проверяют код на безопасность.</p>
+    <a class="yt rv in" href="ВСТАВЬ_ССЫЛКУ_НА_YOUTUBE" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="#0A0908"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6z"/></svg>
+      Смотреть видео
+    </a>
+    <span class="yt-note">// замени ВСТАВЬ_ССЫЛКУ_НА_YOUTUBE на ссылку, когда зальёшь ролик</span>
+    <div class="hmeta rv in">
+      <span>Протокол: <b>Dynamic Workflows</b></span>
+      <span>Агентов: <b>100+</b></span>
+      <span>Команд: <b>01</b></span>
+      <span>Шагов: <b>06</b></span>
+    </div>
+  </header>
+
+  <!-- LEARN -->
+  <section class="sec">
+    <div class="sh rv"><span class="ix">01 //</span><h2 class="druk">Что ты научишься делать</h2></div>
+    <div class="grid">
+      <div class="lc rv"><span class="ix">01</span><p>Запускать армию из сотни ИИ-агентов в Claude одной командой</p></div>
+      <div class="lc rv"><span class="ix">02</span><p>Заставлять армию находить ниши, собирать стартапы с сайтами и выкладывать их в интернет</p></div>
+      <div class="lc rv"><span class="ix">03</span><p>Строить приложение и проверять его на безопасность силами той же армии</p></div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="sec" id="tools">
+    <div class="sh rv"><span class="ix">02 //</span><h2 class="druk">Оборудование</h2></div>
+    <div class="tools rv">
+      <a class="tool" href="https://claude.ai" target="_blank" rel="noopener">
+        <div class="ti">🧠</div><div><div class="tn">Claude (приложение)</div><div class="tu">claude.ai — работаем в десктоп-приложении</div></div>
+        <span class="pill paid sp">Pro $20/мес</span>
+      </a>
+      <a class="tool" href="https://vercel.com" target="_blank" rel="noopener">
+        <div class="ti">▲</div><div><div class="tn">Vercel</div><div class="tu">vercel.com — выкладка сайтов, коннектор прямо в Claude</div></div>
+        <span class="pill free sp">бесплатно</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- STEPS -->
+  <section class="sec" id="steps">
+    <div class="sh rv"><span class="ix">03 //</span><h2 class="druk">Протокол</h2></div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">01</span><div class="s-tt"><span class="s-lab">Модуль 01</span><h3 class="s-t">Включить фичу Dynamic Workflows</h3></div></div>
+      <p class="s-d">Делается один раз, всё мышкой в приложении.</p>
+      <ul class="act">
+        <li>Обнови приложение Claude до последней версии (кнопка обновления в интерфейсе)</li>
+        <li>Зайди в Настройки → включи пункт <code>Dynamic workflows</code> (галка)</li>
+        <li>Работает даже на тарифе Pro</li>
+      </ul>
+    </div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">02</span><div class="s-tt"><span class="s-lab">Модуль 02</span><h3 class="s-t">Армия ищет прибыльные ниши</h3></div></div>
+      <p class="s-d">Встроенная команда <span class="inl">/deep-research</span> — настраивать ничего не надо. Армия сама лезет в сеть, перепроверяет факты и отсеивает фейки.</p>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 01 <b>// ресёрч ниш</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">/deep-research найди самые перспективные ниши для ai стартапа в 2026 какие профессии и услуги уже реально заменяют нейронками с примерами компаний и цифрами рынка</div>
+      </div>
+      <div class="hint">💡 Чтобы увидеть армию агентов в реальном времени (фазы, токены, кто что делает) — введи команду <b>/workflows</b>. Это «командный центр».</div>
+    </div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">03</span><div class="s-tt"><span class="s-lab">Модуль 03</span><h3 class="s-t">Как запускать свой workflow</h3></div></div>
+      <ul class="act">
+        <li>Словами: «создай workflow который…»</li>
+        <li>Ключом: <code>ultracode:</code> и дальше задача — команда «зови армию, не делай сам»</li>
+        <li>На всю сессию: <code>/effort ultracode</code> (Claude сам решает, где нужна армия). Вернуть обычный режим — <code>/effort high</code></li>
+      </ul>
+    </div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">04</span><div class="s-tt"><span class="s-lab">Модуль 04</span><h3 class="s-t">Армия строит 3 стартапа и выкладывает в сеть</h3></div></div>
+      <p class="s-d">Берёт топ-3 ниши из ресёрча и под каждую делает готовый сайт — по агенту на стартап, все разом.</p>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 02 <b>// стартап-завод</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">ultracode возьми из ресерча выше топ 3 самые перспективные ниши и под каждую собери полноценный лендинг в трендовом стиле на русском, шрифты для заголовков возьми из моей папки [укажи свой путь], по агенту на стартап все разом, сложи в папку startups</div>
+      </div>
+      <div class="hint">💡 <b>Лайфхак по шрифтам:</b> укажи путь к папке со своими шрифтами — сайты будут выглядеть дорого. ВАЖНО: качай шрифты <b>с поддержкой кириллицы</b>, иначе встанет стандартный Arial. Не хочешь париться — просто не указывай путь, возьмёт стандартные.</div>
+      <p class="s-d" style="margin-top:18px">⚙️ <b>Деплой в интернет:</b> подключи встроенный коннектор Vercel (в Claude → коннекторы → Vercel, пара кликов), потом промпт:</p>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 03 <b>// деплой на Vercel</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">выложи эти 3 лендинга в версель и скинь мне 3 готовые ссылки</div>
+      </div>
+      <div class="hint">💡 Попросит подтвердить деплой в браузере — один клик, и получаешь 3 живые ссылки.</div>
+    </div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">05</span><div class="s-tt"><span class="s-lab">Модуль 05</span><h3 class="s-t">Касса рок-группы + аудит безопасности</h3></div></div>
+      <p class="s-d">Собрать приложение нейронка может за пару минут — но код часто дырявый. Поэтому строим И сразу проверяем безопасность.</p>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 04 <b>// собрать приложение</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">собери простое веб приложение касса рок группы мастодонт продажа билетов на концерт со входом для пользователя и чтобы заказы и данные клиентов сохранялись в базе сделай в дерзком рок стиле</div>
+      </div>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 05 <b>// аудит безопасности</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">ultracode проверь всё это приложение на дыры в безопасности пройди по всем файлам и найди где небезопасно</div>
+      </div>
+      <div class="term">
+        <div class="term-h"><span class="term-l">&gt;_ ПРОМПТ 06 <b>// починить найденное</b></span><button class="copy" onclick="cp(this)">Копировать</button></div>
+        <div class="ptext">а теперь почини все дыры которые нашёл</div>
+      </div>
+    </div>
+
+    <div class="step rv">
+      <div class="s-head"><span class="s-n">06</span><div class="s-tt"><span class="s-lab">Модуль 06</span><h3 class="s-t">Как не сливать лимиты</h3></div></div>
+      <ul class="act">
+        <li>Мелких агентов сажай на <code>Haiku</code> — дешёвая модель, экономия в разы</li>
+        <li>Гоняй не на весь проект, а на конкретную папку (узкий скоуп)</li>
+        <li><code>x</code> в <code>/workflows</code> — убить прогон, не теряя сделанного</li>
+        <li>Не держи <code>ultracode</code> включённым на каждую мелочь — доставай под большие задачи</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- LINKS -->
+  <section class="sec" id="links">
+    <div class="sh rv"><span class="ix">04 //</span><h2 class="druk">Каналы связи</h2></div>
+    <div class="links rv">
+      <a class="lk" href="https://claude.ai" target="_blank" rel="noopener"><span class="li">🧠</span><span><span class="ln">Claude (приложение)</span><br><span class="lu">claude.ai</span></span></a>
+      <a class="lk" href="https://vercel.com" target="_blank" rel="noopener"><span class="li">▲</span><span><span class="ln">Vercel — деплой сайтов</span><br><span class="lu">vercel.com</span></span></a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta rv">
+    <div class="cta-k">// бесплатный интенсив</div>
+    <div class="cta-t">Первые <span class="g">деньги</span> на ИИ</div>
+    <div class="cta-cols">
+      <div><h4>Внутри</h4><ul>
+        <li>✅ Реальный демо AntiGravity вживую</li>
+        <li>✅ Софт, который за 5 минут находит компании без сайтов с готовыми контактами</li>
+        <li>✅ Кейсы учеников: первые деньги за 3 проекта без команды</li>
+      </ul></div>
+      <div><h4>Два бонуса в конце</h4><ul>
+        <li>💰 50 скучных и самых прибыльных ниш без конкуренции</li>
+        <li>🚀 Чек-лист: первые деньги за 7 дней</li>
+      </ul></div>
+    </div>
+    <div class="cta-bottom">
+      <div class="cta-free"><span class="g">Бесплатно.</span> Навсегда.</div>
+      <a class="cta-btn" href="https://t.me/IntensivMastaBot" target="_blank" rel="noopener">Забрать интенсив</a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="fb"><span>МАСТОДОНТ</span></div>
+  <p>AI и нейросети - просто, по делу</p>
+  <span class="fy" onclick="navigator.clipboard.writeText('Claude Opus 4.8 - армия из 100 ИИ-агентов одной командой')">▶ Claude Opus 4.8 // Dynamic Workflows</span>
+</footer>
+
+<script>
+function cp(btn){
+  const t=btn.closest('.term').querySelector('.ptext').innerText;
+  navigator.clipboard.writeText(t).then(()=>{
+    const o=btn.innerText;btn.innerText='✓ Готово';btn.classList.add('done');
+    setTimeout(()=>{btn.innerText=o;btn.classList.remove('done')},2000);
+  });
+}
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+document.querySelectorAll('.rv:not(.in)').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
