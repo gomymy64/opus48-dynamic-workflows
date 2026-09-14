@@ -174,6 +174,7 @@ footer{padding:38px 0 70px;text-align:center}
 footer p{font-family:'JetBrains Mono';color:var(--muted);font-size:12.5px;letter-spacing:.06em}
 .fy{display:inline-block;margin-top:14px;font-family:'JetBrains Mono';font-size:12px;color:var(--gold);cursor:pointer;letter-spacing:.05em}
 </style>
+<style>.cta-hit{position:absolute;inset:0;z-index:5;display:block}</style>
 </head>
 <body>
 
@@ -320,7 +321,7 @@ footer p{font-family:'JetBrains Mono';color:var(--muted);font-size:12.5px;letter
   </section>
 
   <!-- CTA -->
-  <section class="cta rv">
+  <section class="cta rv" style="position:relative"><a class="cta-hit" href="https://t.me/mastodont_aibot?start=mini_kurs" target="_blank" rel="noopener" aria-label="Забрать интенсив"></a>
     <div class="cta-k">// бесплатный интенсив</div>
     <div class="cta-t">Первые <span class="g">деньги</span> на ИИ</div>
     <div class="cta-cols">
@@ -360,21 +361,5 @@ const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.t
 document.querySelectorAll('.rv:not(.in)').forEach(el=>io.observe(el));
 </script>
 
-<script>
-/* clickable-cta: вся карточка интенсива кликабельна */
-(function(){
-  var sels = '.cta, .cta-wrap, .cta-card, .ctabox, .intensiv-card, .cta-section';
-  document.querySelectorAll(sels).forEach(function(box){
-    if (box.tagName === 'A') return;
-    var link = box.querySelector('a[href*="mastodont_aibot"]');
-    if (!link) return;
-    box.style.cursor = 'pointer';
-    box.addEventListener('click', function(e){
-      if (e.target.closest('a')) return;
-      window.open(link.href, '_blank', 'noopener');
-    });
-  });
-})();
-</script>
 </body>
 </html>
